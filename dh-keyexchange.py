@@ -73,13 +73,13 @@ AliceS = (B ** a) % p
 BobS = (A ** b) % p 
 
 df = pd.DataFrame({
-    "Alice": [g, p, A, B, AliceS]
-    "Eve": [g, p, A, B]
+    "Alice": [g, p, A, B, AliceS],
+    "Eve": [g, p, A, B, ((g ** A) % p) ** B],
     "Bob": [g, p, A, B, BobS]
 })
-
 df.style \
   .format(precision=3, thousands=".", decimal=",") \
   .format_index(str.upper, axis=1) \
+  .relabel_index(["g", "p", "A", "B", "S"], axis=0)
 
 print(df) 
