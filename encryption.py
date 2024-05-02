@@ -1,8 +1,12 @@
+
 import random
+
 import math
 
-def isPrime(number):
+import hashlib
 
+def isPrime(number):
+    
     if number == 2:
         
         return True
@@ -25,11 +29,11 @@ def isPrime(number):
 
 def generatePrime():
     
-    num = random.randint(2, 1000)
+    num = random.randint(10, 100000)
     
     while not isPrime(num):
         
-        num = random.randint(2, 1000)
+        num = random.randint(10, 100000)
     
     return num
 
@@ -55,60 +59,76 @@ def primitiveRoot(prime):
     
     return None
 
-def cleantext(message):
-
-    message = ''.join(c for c in message if c.isalnum())
-
-    message = message.lower()
-
-    message = ''.join(message)
-    return message
-
-def encrypt(message, key):
-     
-    encrypted = ''
-    
-    uni1 = []
-    uni2 = []
-
-    bin1 = []
-    bin2 = []
-
-
-    for char1, char2 in zip(message, key):
-
-        uni1.append(str(ord(char1)))
-        uni2.append(str(ord(char2)))
-
-    for uni, code in zip(uni1, uni2):
-
-        
-
-        bin1.append()
-
-
-        
-
 p = generatePrime()
 g = primitiveRoot(p)
 
-a = random.randint(1, p-1)
 
-A = (g ** a) % p 
+a = random.randint(1, p - 1)
 
-b = random.randint(1, p-1)
+A = (g ** a) % p
 
-B = (g ** b) % p 
+b = random.randint(1, p - 1)
 
-AliceS = (B ** a) % p 
+B = (g ** b) % p
 
-BobS = (A ** b) % p 
+shared_secret_key_A = (B ** a) % p
 
-SS = AliceS
+shared_secret_key_B = (A ** b) % p
 
-if __name__ == "__main__":
+def encrypt(message, key):
+    
+    h = hashlib.sha256()
+    
+    h.update(str(key).encode())
+    
+    key = h.digest()
+    print(f"key = {key}")
+    
+    key_length = len(key)
+    
+    encrypted_message = ""
+    
+    for i in range(0, len(message), key_length):
+        
+        chunk = message[i:i + key_length]
+        
+        for j in range(len(chunk)):
+            encrypted_message += chr(ord(chunk[j]) ^ key[j])
+    
+    return encrypted_message
 
-    message = input("Enter a message to encrypt: ")
-    cleantext(message)
+with open("message.txt", "r") as file:
+    message = file.read()
 
+encrypted_message = encrypt(message, shared_secret_key_A)
 
+with open('encrypted.txt', 'w') as enc:
+    enc.write(encrypted_message)
+    enc.close()
+
+def decrypt(encrypted_message, key):
+    
+    h = hashlib.sha256()
+    
+    h.update(str(key).encode())
+    
+    key = h.digest()
+    
+    key_length = len(key)
+    
+    decrypted_message = ""
+    
+    for i in range(0, len(encrypted_message), key_length):
+        
+        chunk = encrypted_message[i:i + key_length]
+        
+        for j in range(len(chunk)):
+            decrypted_message += chr(ord(chunk[j]) ^ key[j])
+    
+    return decrypted_message
+
+decrypted_message = decrypt(encrypted_message, shared_secret_key_B)
+
+with open('decrypted.txt', 'w') as dec:
+    dec.write(decrypted_message)
+    dec.close()
